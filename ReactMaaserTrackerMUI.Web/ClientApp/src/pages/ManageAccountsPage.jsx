@@ -5,14 +5,13 @@ import axios from 'axios'
 const ManageAccountsPage = () => {
     const [accounts, setAccounts] = useState([]);
     const [addEditOpen, setaddEditOpen] = useState(false);
-    const [selectedAccount, setSelectedAccount] = useState({ id: 0, name: '' });
+    const [selectedAccount, setSelectedAccount] = useState({ id: 0, name: '', transactions: [] });
     const [editingAccountName, setEditingAccountName] = useState('');
     const [confirmOpen, setConfirmOpen] = useState(false);
 
     const loadAccounts = async () => {
-        const { data } = await axios.get('/api/account/getallaccounts')
+        const { data } = await axios.get('/api/account/getaccountswithtransactions')
         setAccounts(data)
-        console.log(data)
     }
 
     useEffect(() => {
@@ -20,7 +19,7 @@ const ManageAccountsPage = () => {
     }, [])
 
 
-    const handleAddEditOpen = (account = { id: 0, name: '' }) => {
+    const handleAddEditOpen = (account = { id: 0, name: '', transactions: [] }) => {
         setaddEditOpen(true);
         setSelectedAccount(account);
         setEditingAccountName(account.name);
@@ -33,10 +32,7 @@ const ManageAccountsPage = () => {
     };
 
     const handleAddEdit = async () => {
-        console.log(editingAccountName)
         const action = selectedAccount.id > 0 ? 'update' : 'add'
-        console.log(action)
-        console.log(selectedAccount.id)
         await axios.post(`/api/account/${action}account`, { id: selectedAccount.id, name: editingAccountName })
 
         loadAccounts();
@@ -44,9 +40,9 @@ const ManageAccountsPage = () => {
     };
 
     const handleDelete = (account) => {
-        console.log(account)
         setSelectedAccount(account);
-        setConfirmOpen(true);
+        account.transactions.length > 0 ? setConfirmOpen(true) : handleDeleteConfirmation(account)
+
     };
 
     const handleCloseDeleteDialog = () => {
@@ -54,8 +50,9 @@ const ManageAccountsPage = () => {
         setConfirmOpen(false);
     };
 
-    const handleDeleteConfirmation = async () => {
-        await axios.post('/api/account/deleteaccount', { id: selectedAccount.id, name: selectedAccount.name })
+    const handleDeleteConfirmation = async (account = selectedAccount) => {
+        console.log(account)
+        await axios.post('/api/account/deleteaccount', { id: account.id, name: account.name })
         loadAccounts();
         handleCloseDeleteDialog();
     }
@@ -115,7 +112,7 @@ const ManageAccountsPage = () => {
                     <Button onClick={handleCloseDeleteDialog} color="primary">
                         Cancel
                     </Button>
-                    <Button onClick={handleDeleteConfirmation} color="secondary">
+                    <Button onClick={() => handleDeleteConfirmation()} color="secondary">
                         Delete
                     </Button>
                 </DialogActions>

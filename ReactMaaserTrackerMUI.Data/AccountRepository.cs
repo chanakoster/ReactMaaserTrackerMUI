@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace ReactMaaserTrackerMUI.Data
 {
@@ -40,6 +41,37 @@ namespace ReactMaaserTrackerMUI.Data
         {
             var context = new MaaserDataContext(_connectionString);
             return context.Accounts.ToList();
+        }
+
+        public List<AccountWithTransactions> GetAccountsWithTransactions()
+        {
+            var context = new MaaserDataContext(_connectionString);
+
+            return context.Accounts
+                .Include(a => a.Transactions)
+                .Select(a => new AccountWithTransactions
+                {
+                    Id = a.Id,
+                    Name = a.Name,
+                    Transactions = a.Transactions.ToList()
+                })
+                .ToList();
+        }
+
+        public List<AccountWithTransactions> GetAccountsWithTransactionsByType(string type)
+        {
+            var context = new MaaserDataContext(_connectionString);
+
+            return context.Accounts
+                .Select(a => new AccountWithTransactions
+                {
+                    Id = a.Id,
+                    Name = a.Name,
+                    Transactions = a.Transactions
+                        .Where(t => t.Type == type.ToLower())
+                        .ToList()
+                })
+                .ToList();
         }
     }
 }

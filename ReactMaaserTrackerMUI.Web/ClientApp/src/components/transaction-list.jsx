@@ -3,46 +3,30 @@ import { Checkbox, Container, FormControlLabel, Table, TableBody, TableCell, Tab
 import axios from '../../node_modules/axios/index';
 import dayjs from 'dayjs';
 
-const groupedIncomes = [
-    {
-        account: "Job",
-        incomes:
-            [
-                { id: 1, account: "Job", memo: 'Salary', amount: 5000, date: "2023-06-13" },
-                { id: 3, account: "Job", memo: 'Salary', amount: 2500, date: "2023-06-11" }
-            ]
-    },
-    {
-        account: "Gift",
-        incomes:
-            [
-                { id: 2, account: "Gift", amount: 300, date: "2023-06-11" }
-            ]
-    },
-    {
-        account: "Investments",
-        incomes:
-            [
-                { id: 4, account: "Investments", memo: 'Investments', amount: 1000, date: "2023-06-10" }
-            ]
-    }
-]
-
-
 const TransactionList = ({ type }) => {
     const [transactions, setTransactions] = useState([]);
+    const [groupedTransactions, setGroupTransactions] = useState([]);
 
     const [groupByAccount, setGroupByAccount] = useState(false);
 
+    const loadTransactions = async () => {
+        const { data } = await axios.get(`/api/transaction/getall${type}`)
+        setTransactions(data);
+    }
+
     useEffect(() => {
-        const loadTransactions = async () => {
-            const { data } = await axios.get(`/api/transaction/getall${type}`)
-            setTransactions(data);
-            console.log(data)
-        }
         loadTransactions();
     }, [])
 
+    const loadGroupedTransactions = async () => {
+        const { data } = await axios.get(`/api/account/GetAccountsWithTransactionsByType?type=${type}`);
+        setGroupTransactions(data);
+    }
+
+    const onCheckBoxChange = () => {
+        groupByAccount ? loadTransactions() : loadGroupedTransactions()
+        setGroupByAccount(!groupByAccount);
+    }
 
     return (
         <Container sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 3 }}>
@@ -54,7 +38,7 @@ const TransactionList = ({ type }) => {
                 control={
                     <Checkbox
                         checked={groupByAccount}
-                        onChange={(event) => setGroupByAccount(event.target.checked)}
+                        onChange={onCheckBoxChange}
                         name="checkedB"
                         color="primary"
                     />
@@ -88,10 +72,10 @@ const TransactionList = ({ type }) => {
                     </Table>
                 </TableContainer>
             ) : (
-                groupedIncomes.map(({ account, incomes }) => (
-                    <div key={account} sx={{ width: '80%', maxWidth: '80%' }}>
+                groupedTransactions.map(account => (
+                    <div key={account.id} sx={{ width: '80%', maxWidth: '80%' }}>
                         <Typography variant="h5" gutterBottom component="div" sx={{ mt: 5 }}>
-                            {account}
+                            {account.name}
                         </Typography>
                         <TableContainer component={Paper}>
                             <Table sx={{ minWidth: 650 }}>
@@ -104,14 +88,14 @@ const TransactionList = ({ type }) => {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {incomes.map((transaction) => (
+                                    {account.transactions.map((transaction) => (
                                         <TableRow key={transaction.id}>
                                             <TableCell component="th" scope="row" sx={{ fontSize: '18px' }}>
-                                                {transaction.account}
+                                                {account.name}
                                             </TableCell>
                                             <TableCell sx={{ fontSize: '18px' }}>{transaction.memo}</TableCell>
                                             <TableCell align="right" sx={{ fontSize: '18px' }}>${transaction.amount}</TableCell>
-                                            <TableCell align="right" sx={{ fontSize: '18px' }}>{transaction.date}</TableCell>
+                                            <TableCell align="right" sx={{ fontSize: '18px' }}>{dayjs(transaction.date).format('YYYY-MM-DD')}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>

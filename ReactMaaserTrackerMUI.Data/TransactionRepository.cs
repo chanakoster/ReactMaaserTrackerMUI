@@ -34,5 +34,13 @@ namespace ReactMaaserTrackerMUI.Data
             var context = new MaaserDataContext(_connectionString);
             return context.Transactions.Where(t => t.Type == type).Sum(trans => trans.Amount);
         }
+
+        public void DeleteTransactionsForAccount(int accountId)
+        {
+            var context = new MaaserDataContext(_connectionString);
+            var transactions = context.Transactions .Where(t => t.AccountId == accountId);
+            context.Transactions.RemoveRange(transactions);
+            context.SaveChanges();
+        }
     }
 }
