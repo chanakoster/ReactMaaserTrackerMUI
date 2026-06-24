@@ -4,7 +4,7 @@ import dayjs from 'dayjs';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom'
 
-const AddTransaction = (type) => {
+const AddTransaction = ({type}) => {
     const [accounts, setAccounts] = useState([]);
 
     const [transaction, setTransaction] = useState({
@@ -25,7 +25,7 @@ const AddTransaction = (type) => {
     }, [])
 
     const onInputChange = e => {
-        const copy = { ...income }
+        const copy = { ...transaction }
         copy[e.target.name] = e.target.value
         setTransaction(copy)
     }
@@ -38,7 +38,7 @@ const AddTransaction = (type) => {
     return (
         <Container maxWidth="sm" sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '80vh' }}>
             <Typography variant="h2" component="h1" gutterBottom>
-                Add Income
+                Add {type}
             </Typography>
             <Autocomplete
                 options={accounts}
@@ -60,7 +60,7 @@ const AddTransaction = (type) => {
                 type="text"
                 fullWidth
                 margin="normal"
-                value={income.memo}
+                value={transaction.memo}
                 onChange={onInputChange}
             />
             <TextField
@@ -71,14 +71,14 @@ const AddTransaction = (type) => {
                 slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
                 fullWidth
                 margin="normal"
-                value={income.amount}
+                value={transaction.amount}
                 onChange={onInputChange}
             />
             <TextField
                 label="Date"
                 name="date"
                 type="date"
-                value={dayjs(income.date).format('YYYY-MM-DD')}
+                value={dayjs(transaction.date).format('YYYY-MM-DD')}
                 onChange={onInputChange}
                 margin="normal"
                 slotProps={{
